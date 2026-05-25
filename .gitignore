@@ -14,8 +14,13 @@ dist-ssr
 /hf_env/
 .bolt
 
-/src/components/wav2vec2-ravdess-emotion/
-/src/components/wav2vec2-ravdess-emotion-checkpoint/
+# Local env (Spotify secrets, overrides)
+.env
+api/.env
+
+# Hugging Face / local Wav2Vec2 checkpoints (large)
+/api/models/wav2vec2-ravdess-emotion/
+/api/models/wav2vec2-ravdess-emotion-checkpoint/
 
 # Editor directories and files
 .vscode/*

@@ -10,10 +10,9 @@ export type Emotion =
 export interface Song {
   title: string;
   artist: string;
-  emotion: Emotion;  // Only if you still need local emotion data
-  url?: string;        // <-- Add this (optional if some songs don't have a URL)
+  emotion: Emotion;
+  url?: string;
 }
-
 
 export interface EmotionTheme {
   background: string;

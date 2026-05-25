@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Mic, MicOff, Music } from "lucide-react";
 import { Emotion } from "./types";
 import { EmotionDisplay } from "./components/EmotionDisplay";
+import { API_BASE_URL } from "./env";
 
 const emotionThemes = {
   happy: {
@@ -55,27 +56,20 @@ interface SpotifySong {
 }
 
 function App() {
-  // Toggles the mic icon
   const [isListening, setIsListening] = useState(false);
 
-  // MediaRecorder states
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
   const chunksRef = useRef<Blob[]>([]);
 
-  // Final emotion
   const [emotion, setEmotion] = useState<Emotion | null>(null);
 
-  // Store recommended songs from Spotify
   const [recommendedTracks, setRecommendedTracks] = useState<SpotifySong[]>([]);
 
-  // Fade-in on initial load
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   useEffect(() => {
     setIsInitialLoad(false);
   }, []);
 
-  // When the emotion changes, fetch from Spotify backend
   useEffect(() => {
     const fetchSpotifySongs = async () => {
       if (!emotion) {
@@ -84,10 +78,9 @@ function App() {
       }
       try {
         const res = await fetch(
-          `http://localhost:8000/spotify-songs?emotion=${emotion}`
+          `${API_BASE_URL}/spotify-songs?emotion=${emotion}`
         );
         const data = await res.json();
-        // data.tracks => array of { title, artist, url }
         setRecommendedTracks(data.tracks || []);
       } catch (err) {
         console.error("Error fetching Spotify songs:", err);
@@ -97,17 +90,13 @@ function App() {
     fetchSpotifySongs();
   }, [emotion]);
 
-  // Toggle mic & recording
   const toggleListening = async () => {
     const newState = !isListening;
     setIsListening(newState);
 
     if (!newState) {
-      // Stop
       mediaRecorderRef.current?.stop();
-      setIsRecording(false);
     } else {
-      // Start
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: true,
@@ -127,7 +116,7 @@ function App() {
           formData.append("file", blob, "recording.webm");
 
           try {
-            const res = await fetch("http://localhost:8000/predict-emotion", {
+            const res = await fetch(`${API_BASE_URL}/predict-emotion`, {
               method: "POST",
               body: formData,
             });
@@ -142,14 +131,12 @@ function App() {
 
         mediaRecorder.start();
         mediaRecorderRef.current = mediaRecorder;
-        setIsRecording(true);
       } catch (error) {
         console.error("Microphone access error:", error);
       }
     }
   };
 
-  // Theming
   const theme = emotion ? emotionThemes[emotion] : emotionThemes.calm;
 
   return (
@@ -172,7 +159,6 @@ function App() {
             </p>
           </div>
 
-          {/* The single mic button */}
           <div className="relative mt-8">
             <div
               className={`absolute inset-0 ${theme.accent} rounded-full blur-xl opacity-20 scale-150 transition-all duration-500`}
@@ -194,10 +180,8 @@ function App() {
             </button>
           </div>
 
-          {/* Show final emotion */}
           <EmotionDisplay emotion={emotion} />
 
-          {/* If we have recommended tracks, show them inline */}
           {recommendedTracks.length > 0 && (
             <div className="w-full max-w-xl mx-auto">
               <h2 className="text-2xl font-bold mb-6 text-center">
@@ -231,7 +215,6 @@ function App() {
             </div>
           )}
 
-          {/* If no emotion yet */}
           {!emotion && (
             <div className="text-center mt-8 space-y-2 opacity-60">
               <Music className="w-8 h-8 mx-auto" />

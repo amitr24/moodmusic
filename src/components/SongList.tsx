@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Song, Emotion } from "../types";
+import { API_BASE_URL } from "../env";
 import { Music, ExternalLink } from "lucide-react";
 
 interface SongListProps {
-  songs?: Song[]; // fallback
+  songs?: Song[];
   emotion: Emotion | null;
 }
 
@@ -15,10 +16,16 @@ export const SongList: React.FC<SongListProps> = ({ emotion }) => {
       if (!emotion) return;
       try {
         const res = await fetch(
-          `http://localhost:8000/spotify-songs?emotion=${emotion}`
+          `${API_BASE_URL}/spotify-songs?emotion=${emotion}`
         );
         const data = await res.json();
-        setFetchedSongs(data.tracks);
+        const tracks = (data.tracks ?? []) as Omit<Song, "emotion">[];
+        setFetchedSongs(
+          tracks.map((t) => ({
+            ...t,
+            emotion,
+          }))
+        );
       } catch (err) {
         console.error("Failed to fetch Spotify songs:", err);
       }
